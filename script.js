@@ -9,12 +9,14 @@ function onDOMContentLoaded() {
   fetch('https://api.covid19api.com/countries')
     .then((res) => res.json())
     .then((data) =>
-      data.map((elem) => {
-        let option = document.createElement('option');
-        option.text = elem.Country;
-        option.value = elem.Slug;
-        document.getElementById('countryFilter').append(option);
-      })
+      data
+        .sort((a, b) => a.Country.localeCompare(b.Country))
+        .map((elem) => {
+          let option = document.createElement('option');
+          option.text = elem.Country;
+          option.value = elem.Slug;
+          document.getElementById('countryFilter').append(option);
+        })
     );
 
   createChart();
