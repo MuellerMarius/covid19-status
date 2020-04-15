@@ -1,25 +1,61 @@
 'use strict';
 const KEYS = ['active', 'recovered', 'deaths'];
 const COLORS = ['#a4c5c6', '#d4ebd0', '#f78259'];
+const FAV_COUNTRIES = [
+  'Germany',
+  'Spain',
+  'Italy',
+  'China',
+  'United States of America',
+  'United Kingdom',
+  'Viet Nam',
+];
 const MIN_CASES_TO_DISPLAY = 20;
+const MAX_AUTOCOMPLETE_RESULTS = 20;
 
 document.addEventListener('DOMContentLoaded', onDOMContentLoaded, false);
 
-function onDOMContentLoaded() {
-  fetch('https://api.covid19api.com/countries')
+async function onDOMContentLoaded() {
+  let countryFilter = document.getElementById('countryFilter');
+  let countries = await fetch('https://api.covid19api.com/countries')
     .then((res) => res.json())
-    .then((data) =>
-      data
-        .sort((a, b) => a.Country.localeCompare(b.Country))
-        .map((elem) => {
-          let option = document.createElement('option');
-          option.text = elem.Country;
-          option.value = elem.Slug;
-          document.getElementById('countryFilter').append(option);
-        })
-    );
+    .then((data) => data.map((elem) => elem.Country));
 
+  // let dumpData = [
+  //   'Germany',
+  //   'Georgia',
+  //   'Georg',
+  //   'Golf',
+  //   'Georgia',
+  //   'Georg',
+  //   'Golf',
+  //   'Georgia',
+  //   'Georg',
+  //   'Golf',
+  //   'Georgia',
+  //   'Georg',
+  //   'Golf',
+  //   'Georgia',
+  //   'Georg',
+  //   'Golf',
+  //   'Georgia',
+  //   'Georg',
+  //   'Golf',
+  //   'Georgia',
+  //   'Georg',
+  //   'Golf',
+  // ];
+
+  addAutocomplete(countryFilter, 'country-filter', countries, FAV_COUNTRIES);
   createChart();
+}
+
+function showFavourites() {
+  const countryFilter = document.getElementById('countryFilter');
+  countryFilter.focus();
+  countryFilter.value = '';
+  countryFilter.dispatchEvent(new Event('input'));
+  event.stopPropagation();
 }
 
 async function createChart() {
@@ -30,11 +66,46 @@ async function createChart() {
     `https://api.covid19api.com/total/country/${country}/status/recovered`,
   ];
 
-  let data = await Promise.all(
-    apiRequests.map((url) => fetch(url).then((res) => res.json()))
-  ).then((dataArrays) => mergeAndFormatDataArrays.apply(this, dataArrays));
+  displayLoadingScreen(true);
+  displayLoadingScreenError(false);
+  try {
+    let data = await Promise.all(
+      apiRequests.map((url) => fetch(url).then((res) => res.json()))
+    ).then((dataArrays) => mergeAndFormatDataArrays.apply(this, dataArrays));
 
-  data.length > 0 ? drawChart(data) : drawEmptyChart();
+    data.length > 0 ? drawChart(data) : drawEmptyChart();
+    displayLoadingScreen(false);
+  } catch (err) {
+    // TODO: stop svg animation
+    displayLoadingScreenError(
+      true,
+      country
+        ? `Data for <strong>${country}</strong> could not be loaded.`
+        : 'Data could not be loaded.'
+    );
+  }
+}
+
+function displayLoadingScreenError(displayError, errMsg) {
+  const loadingBars = document.getElementsByClassName('chart__loading-bar');
+  const errMsgDisplay = document.getElementById('chart__err-msg');
+
+  for (const bar of loadingBars) {
+    displayError
+      ? bar.classList.add('chart__loading--red')
+      : bar.classList.remove('chart__loading--red');
+  }
+
+  if (errMsg && displayError) {
+    errMsgDisplay.innerHTML = errMsg;
+    errMsgDisplay.style.visibility = 'visible';
+  } else if (!displayError) {
+    errMsgDisplay.style.visibility = 'hidden';
+  }
+}
+
+function displayLoadingScreen(displayLoadingScreen) {
+  document.getElementById('chart__loading').hidden = !displayLoadingScreen;
 }
 
 function mergeAndFormatDataArrays(confirmedData, deathsData, recoveredData) {
@@ -82,15 +153,15 @@ function drawChart(data) {
 
   let stackedData = d3.stack().keys(KEYS)(data);
   let svg = d3.select('#chart__area');
-  let margin = { top: 10, right: 30, bottom: 30, left: 50 },
-    width = 700,
+  let margin = { top: 10, right: 20, bottom: 30, left: 20 },
+    width = 700 - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
 
   svg.selectAll('svg > *').remove();
   svg
     .attr('width', '100%')
     .attr('height', '100%')
-    .attr('viewBox', '0 0 700 400')
+    .attr('viewBox', `0 0 ${width} 400 `)
     .append('g');
 
   // X-Axis
@@ -111,7 +182,7 @@ function drawChart(data) {
         return d.date;
       })
     )
-    .range([0, width]);
+    .range([margin.left, width - margin.right]);
 
   svg
     .append('g')
@@ -122,7 +193,7 @@ function drawChart(data) {
   // Y-Axis
   let yAxis = (svg) =>
     svg
-      .call(d3.axisRight(y).tickSize(width))
+      .call(d3.axisRight(y).tickSize(width - margin.right))
       .call((g) => g.select('.domain').remove())
       .call((g) => g.selectAll('.tick:first-of-type line').attr('opacity', 0))
       .call((g) =>
@@ -149,7 +220,7 @@ function drawChart(data) {
         return d.active + d.recovered + d.deaths;
       }),
     ])
-    .range([height, 0]);
+    .range([height, margin.top + margin.bottom]);
   svg.append('g').call(yAxis);
 
   // chart areas
