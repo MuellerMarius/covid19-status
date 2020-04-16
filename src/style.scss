@@ -57,7 +57,7 @@ a:hover {
 
     @media screen and (max-width: 550px) {
       margin: 20px 0 0px 0;
-      width: 90%;
+      width: 100%;
     }
 
     @media screen and (max-width: 395px) {
@@ -66,31 +66,43 @@ a:hover {
   }
 
   &__input {
-    width: 100%;
+    display: inline-block;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 90%;
+    padding: 5px;
+    border: 1px solid var(--font-color);
+    border-right: 0;
     background-color: var(--highlight-color);
     color: var(--background-color);
     font-family: 'Playfair Display', serif;
     font-size: 1.1rem;
     font-weight: 600;
-    padding: 5px;
-    border: 1px solid var(--font-color);
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    margin-right: 0;
 
     &:focus {
       outline: none;
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
+
+    @media screen and (max-width: 395px) {
+      border-right: 1px solid var(--font-color);
+      width: 100%;
+    }
   }
 
   &__btn {
+    display: inline-block;
+    width: 10%;
     background-color: var(--highlight-color);
     color: var(--background-color);
     margin: 0;
-    border: 0;
-    opacity: 0.8;
+    padding: 5px;
+    border: 1px solid var(--font-color);
+    border-left: 0;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
 
     &:hover {
       background-color: var(--highlight-2-color);
@@ -158,12 +170,23 @@ p {
   }
 
   &__err-msg {
+    position: relative;
+    top: -200px;
     text-align: center;
     color: #ff0000;
     font-weight: 400;
     font-size: 1.2rem;
-    visibility: hidden;
-    // TODO: transition for visibility?
+    opacity: 0;
+    transition: opacity 0.7s;
+
+    @media screen and (max-width: 700px) {
+      top: -150px;
+    }
+
+    @media screen and (max-width: 500px) {
+      top: -110px;
+      font-size: 1.1rem;
+    }
   }
 
   &__wrapper {

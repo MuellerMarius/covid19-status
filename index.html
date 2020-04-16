@@ -7,10 +7,8 @@
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css" />
-    <script src="https://d3js.org/d3.v4.min.js"></script>
-    <script src="chart.js" type="text/javascript"></script>
-    <script src="autocomplete.js" type="text/javascript"></script>
+    <link href="./build/app.css" rel="stylesheet" />
+    <script src="./build/app.bundle.js" type="text/javascript"></script>
     <title>Corona Overview</title>
   </head>
   <body>
@@ -30,6 +28,7 @@
         to fetch the data gathered by the Johns Hopkins University.
       </p>
 
+      <!-- TODO: on mobile, scroll automatically um das Inputfield ganz oben zu haben-->
       <div class="country-filter">
         <label for="countryFilter">Filter by country:</label>
         <div class="country-filter__input-container">
@@ -40,25 +39,24 @@
             class="country-filter__input"
             autocomplete="off"
             value="Germany"
-          />
-        </div>
-        <button
-          name="favouriteCountries"
-          onClick="showFavourites()"
-          class="country-filter__btn"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
+          /><button
+            name="favouriteCountries"
+            onClick="showFavourites()"
+            class="country-filter__btn"
           >
-            <path
-              transform="rotate(90, 10, 10) translate(4, 1) scale(0.7)"
-              d="M5 3l3.057-3 11.943 12-11.943 12-3.057-3 9-9z"
-            />
-          </svg>
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="14"
+              viewBox="0 0 24 24"
+            >
+              <path
+                transform="rotate(90, 10, 10) translate(4, 1) scale(0.7)"
+                d="M5 3l3.057-3 11.943 12-11.943 12-3.057-3 9-9z"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div class="chart__wrapper">

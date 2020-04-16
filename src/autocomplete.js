@@ -1,10 +1,12 @@
 'use strict';
-function addAutocomplete(object, id, data, favs) {
+import * as Constants from './constants';
+
+export function addAutocomplete(object, id, data, updateFunction, favs) {
   let focusedItem = -1;
 
   object.addEventListener('input', onInputChange);
   object.addEventListener('keydown', onKeyDown);
-  object.addEventListener('blur', createChart);
+  object.addEventListener('blur', updateFunction);
   document.addEventListener('click', removeAllItems);
 
   function onInputChange(e) {
@@ -12,12 +14,12 @@ function addAutocomplete(object, id, data, favs) {
     const matches = data
       .filter((elem) => elem.toUpperCase().includes(inputValue))
       .sort((a, b) => a.localeCompare(b));
-    let itemContainer = document.createElement('div');
+    const itemContainer = document.createElement('div');
     itemContainer.setAttribute('class', `${id}__autocomplete-container`);
 
     removeAllItems();
     focusedItem = -1;
-    if (matches.length < MAX_AUTOCOMPLETE_RESULTS) {
+    if (matches.length < Constants.MAX_AUTOCOMPLETE_RESULTS) {
       matches.map((elem) => {
         itemContainer.appendChild(createItem(elem, inputValue));
       });
@@ -37,7 +39,8 @@ function addAutocomplete(object, id, data, favs) {
       case 13:
         //Enter
         e.preventDefault();
-        this.value = items[focusedItem].attributes.name.value;
+        if (focusedItem > -1)
+          this.value = items[focusedItem].attributes.name.value;
         removeAllItems();
         createChart();
         break;
@@ -69,8 +72,8 @@ function addAutocomplete(object, id, data, favs) {
   }
 
   function createItem(label, searchValue) {
-    let item = document.createElement('div');
-    let index = label.toUpperCase().indexOf(searchValue);
+    const item = document.createElement('div');
+    const index = label.toUpperCase().indexOf(searchValue);
 
     item.setAttribute('class', `${id}__autocomplete-item`);
     item.setAttribute('name', label);
@@ -82,14 +85,14 @@ function addAutocomplete(object, id, data, favs) {
       label.substr(index + searchValue.length);
     item.addEventListener('click', () => {
       object.value = label;
-      createChart();
+      updateFunction();
     });
 
     return item;
   }
 
   function removeAllItems() {
-    let items = document.getElementsByClassName(
+    const items = document.getElementsByClassName(
       `${id}__autocomplete-container`
     );
     for (const item of items) {
