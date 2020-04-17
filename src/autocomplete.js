@@ -6,8 +6,10 @@ export function addAutocomplete(object, id, data, updateFunction, favs) {
 
   object.addEventListener('input', onInputChange);
   object.addEventListener('keydown', onKeyDown);
-  object.addEventListener('blur', updateFunction);
-  document.addEventListener('click', removeAllItems);
+  object.addEventListener('blur', () => {
+    updateFunction();
+    removeAllItems();
+  });
 
   function onInputChange(e) {
     const inputValue = this.value.toUpperCase();
@@ -42,7 +44,7 @@ export function addAutocomplete(object, id, data, updateFunction, favs) {
         if (focusedItem > -1)
           this.value = items[focusedItem].attributes.name.value;
         removeAllItems();
-        createChart();
+        object.blur();
         break;
       case 40:
         // Arrow down
@@ -83,9 +85,8 @@ export function addAutocomplete(object, id, data, updateFunction, favs) {
       label.substr(index, searchValue.length) +
       '</strong>' +
       label.substr(index + searchValue.length);
-    item.addEventListener('click', () => {
+    item.addEventListener('mousedown', (e) => {
       object.value = label;
-      updateFunction();
     });
 
     return item;

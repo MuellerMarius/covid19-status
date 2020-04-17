@@ -9,18 +9,24 @@ document.addEventListener('DOMContentLoaded', onDOMContentLoaded, false);
 
 async function onDOMContentLoaded() {
   const countryFilter = document.getElementById('countryFilter');
-  const countries = await fetch('https://api.covid19api.com/countries')
-    .then((res) => res.json())
-    .then((data) => data.map((elem) => elem.Country));
+  try {
+    const countries = await fetch('https://api.covid19api.com/countries')
+      .then(handleHttpErrors)
+      .then((res) => res.json())
+      .then((data) => data.map((elem) => elem.Country));
 
-  addAutocomplete(
-    countryFilter,
-    'country-filter',
-    countries,
-    createChart,
-    Constants.FAV_COUNTRIES
-  );
-  createChart();
+    addAutocomplete(
+      countryFilter,
+      'country-filter',
+      countries,
+      createChart,
+      Constants.FAV_COUNTRIES
+    );
+
+    createChart();
+  } catch (err) {
+    displayLoadingScreenError(true, `${err} - Data could not be loaded.`);
+  }
 }
 
 window.showFavourites = function () {
@@ -43,23 +49,27 @@ window.createChart = async function () {
   displayLoadingScreenError(false);
 
   try {
-    // TODO: Uncaught TypeError: failed to fetch
     const data = await Promise.all(
-      apiRequests.map((url) => fetch(url).then((res) => res.json()))
+      apiRequests.map((url) =>
+        fetch(url)
+          .then(handleHttpErrors)
+          .then((res) => res.json())
+      )
     ).then((dataArrays) => mergeAndFormatDataArrays.apply(this, dataArrays));
 
     data.length > 0 ? drawChart(data) : drawEmptyChart();
     displayLoadingScreen(false);
   } catch (err) {
-    // TODO: stop svg animation
-    displayLoadingScreenError(
-      true,
-      country
-        ? `Data for <strong>${country}</strong> could not be loaded.`
-        : 'Data could not be loaded.'
-    );
+    displayLoadingScreenError(true, `${err} - Data could not be loaded.`);
   }
 };
+
+function handleHttpErrors(response) {
+  if (!response.ok) {
+    throw Error(response.status);
+  }
+  return response;
+}
 
 function displayLoadingScreenError(displayError, errMsg) {
   const loadingBars = document.getElementsByClassName('chart__loading-bar');
